@@ -27,7 +27,7 @@ class UserProfile extends Model
         'tenpad_advance_padel_federation_name',
         'tenpad_advance_membership_number',
         'tenpad_advance_current_rank',
-
+        'profile_score'
     ];
 
     protected $casts = [

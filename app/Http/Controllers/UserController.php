@@ -34,6 +34,38 @@ class UserController extends Controller
             'tenpad_advance_current_rank' => 'required_if:is_tenpad_advance_member,No',
         ]);
 
+        // Get the selected experience level and matches played
+        $experienceLevel = $request['experience_level'];
+        $matchesPlayed = $request['matches_played_last_3_months'];
+        $profileScore = 0.00;
+
+        // Define the score ranges
+        $scoreRanges = [
+            'Beginner' => ['min' => 0.5, 'max' => 2.49],
+            'Intermediate' => ['min' => 2.5, 'max' => 3.99],
+        ];
+
+        // Calculate profile score based on conditions
+        if (in_array($experienceLevel, ['Beginner', 'Intermediate'])) {
+            // Set the default score
+            $profileScore = $scoreRanges[$experienceLevel]['min'];
+
+            // Adjust the score based on matches played
+            switch ($matchesPlayed) {
+                case 'More than 5':
+                case 'Less than 10':
+                case 'More than 10':
+                    $profileScore += 1;
+                    break;
+                case 'More than 15':
+                    $profileScore = $scoreRanges[$experienceLevel]['max'];
+                    break;
+                default:
+                    // No need to adjust the score for other cases
+                    break;
+            }
+        }
+
         $user = auth()->user();
 
         $existingProfile = $user->profile;
@@ -71,6 +103,7 @@ class UserController extends Controller
             'tenpad_advance_padel_federation_name' => $request->input('tenpad_advance_padel_federation_name'),
             'tenpad_advance_membership_number' => $request->input('tenpad_advance_membership_number'),
             'tenpad_advance_current_rank' => $request->input('tenpad_advance_current_rank'),
+            'profile_score' => $profileScore
         ]);
 
         return response()->json([
@@ -83,6 +116,7 @@ class UserController extends Controller
 
     public function getUserProfile()
     {
+
         $user = auth()->user();
         $userProfile = $user->profile;
 
@@ -90,6 +124,15 @@ class UserController extends Controller
             return response()->json(['message' => 'User profile not found'], 404);
         }
 
-        return response()->json(['data' => $userProfile], 200);
+        $result = array_merge($userProfile, [
+            'matches' => 12,
+            'followers' => 50,
+            'followings' => 75,
+            'current level of reliability' => 'High',
+            'location' => 'United States',
+            'address' =>'United States',
+        ]);
+
+        return response()->json(['data' => $result], 200);
     }
 }
