@@ -25,7 +25,7 @@ class CreateUserProfilesTable extends Migration
             $table->enum('matches_played_last_3_months', ['Less than 5', 'More than 5', 'Less than 10', 'More than 10', 'More than 15']);
             $table->enum('fitness_level', ['Excellent', 'Good', 'Normal', 'Low', 'Very low']);
             $table->enum('padel_experience', ['Less than 1 year', 'Less than 2 years', 'More than 2 years'])->required();
-            $table->enum('has_played_other_sport', ['No', 'Never', 'Yes, less than two years', 'Yes, more than two years', 'Yes, more than five years'])->required();
+            $table->enum('has_played_other_sport', ['No, Never', 'Yes, less than two years', 'Yes, more than two years', 'Yes, more than five years'])->required();
             $table->enum('is_tenpad_advance_member', ['Yes', 'No'])->required();
             $table->string('tenpad_advance_padel_federation_name')->nullable();
             $table->string('tenpad_advance_membership_number')->nullable();
