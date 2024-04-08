@@ -124,7 +124,10 @@ class UserController extends Controller
             return response()->json(['message' => 'User profile not found'], 404);
         }
 
-        $result = array_merge($userProfile, [
+        $userProfileArray = $userProfile->toArray();
+
+
+        $result = array_merge($userProfileArray, [
             'matches' => 12,
             'followers' => 50,
             'followings' => 75,
