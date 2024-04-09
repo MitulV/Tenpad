@@ -124,36 +124,17 @@ class UserController extends Controller
             return response()->json(['message' => 'User profile not found'], 404);
         }
 
-        $result = [
-            "id" => $userProfile->id,
-            "user_id" =>  $userProfile->user_id,
-            "full_name" => $userProfile->full_name,
-            "profile_pic" => $userProfile->profile_pic,
-            "country_code" => $userProfile->country_code,
-            "number" => $userProfile->number,
-            "dob" => $userProfile->dob,
-            "gender" => $userProfile->gender,
-            "best_hand" => $userProfile->best_hand,
-            "court_side" => $userProfile->court_side,
-            "match_type" => $userProfile->match_type,
-            "preferred_time_to_play" => $userProfile->preferred_time_to_play,
-            "experience_level" => $userProfile->experience_level,
-            "matches_played_last_3_months" => $userProfile->matches_played_last_3_months,
-            "fitness_level" => $userProfile->fitness_level,
-            "padel_experience" => $userProfile->padel_experience,
-            "has_played_other_sport" => $userProfile->has_played_other_sport,
-            "is_tenpad_advance_member" => $userProfile->is_tenpad_advance_member,
-            "tenpad_advance_padel_federation_name" => $userProfile->tenpad_advance_padel_federation_name,
-            "tenpad_advance_membership_number" => $userProfile->tenpad_advance_membership_number,
-            "tenpad_advance_current_rank" => $userProfile->tenpad_advance_current_rank,
-            "profile_score" => $userProfile->profile_score,
+        $userProfileArray = $userProfile->toArray();
+
+
+        $result = array_merge($userProfileArray, [
             'matches' => 12,
             'followers' => 50,
             'followings' => 75,
             'current level of reliability' => 'High',
             'location' => 'United States',
-            'address' => 'United States',
-        ];
+            'address' =>'United States',
+        ]);
 
         return response()->json(['data' => $result], 200);
     }

@@ -32,7 +32,8 @@ class UserProfile extends Model
 
     protected $casts = [
         'dob' => 'date',
-        'profile_pic' => 'string'
+        'profile_pic' => 'string',
+        'profile_score' => 'double', 
     ];
 
 
@@ -40,4 +41,5 @@ class UserProfile extends Model
     {
         return $this->belongsTo(User::class);
     }
+
 }
