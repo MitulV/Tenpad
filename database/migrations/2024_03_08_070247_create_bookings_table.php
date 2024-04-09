@@ -16,8 +16,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained();
             $table->foreignId('club_id')->constrained();
             $table->foreignId('time_slot_id')->constrained('time_slots');
+            $table->date('booking_date'); // Add the booking date column
             $table->timestamps();
         });
+        
     }
 
     /**

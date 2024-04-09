@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Club;
 use App\Models\OpeningHours;
 use App\Models\TimeSlot;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class ClubBookingController extends Controller
@@ -61,6 +62,7 @@ class ClubBookingController extends Controller
 
         // Store recent search for the authenticated user
         if (Auth::check()) {
+            /** @var User|null $user */
             $user = Auth::user();
             $user->recentSearches()->create(['query' => $query]);
         }
@@ -85,9 +87,9 @@ class ClubBookingController extends Controller
         (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))))
         AS distance
     ", [$request->input('latitude'), $request->input('longitude'), $request->input('latitude')])
-        ->having('distance', '<=', $rangeInKm)
-        ->orderBy('distance')
-        ->get();
+            ->having('distance', '<=', $rangeInKm)
+            ->orderBy('distance')
+            ->get();
 
 
         // Return the response
@@ -111,6 +113,7 @@ class ClubBookingController extends Controller
 
     public function getRecentSearches()
     {
+        /** @var User|null $user */
         $user = Auth::user();
 
         if (!$user) {
@@ -122,14 +125,41 @@ class ClubBookingController extends Controller
         return response()->json(['data' => $recentSearches], 200);
     }
 
-    public function getTimeSlots()
+    public function getTimeSlots($clubId)
     {
-        $timeSlots = TimeSlot::all();
+        $club = Club::findOrFail($clubId);
+        $currentDate = now()->toDateString();
 
-        $slotsByGroup = $timeSlots->groupBy('slot_group');
+        $allTimeSlots = TimeSlot::all();
 
-        return response()->json(['data' => $slotsByGroup], 200);
+
+
+        // Fetch booked time slots
+        $bookedTimeSlots = Booking::where('club_id', $clubId)
+            ->whereDate('booking_date', $currentDate)
+            ->with('user') // Include the user relationship
+            ->pluck('time_slot_id')
+            ->toArray();
+
+        $response = [];
+        foreach ($allTimeSlots as $timeSlot) {
+            $isSlotAvailable = !in_array($timeSlot->id, $bookedTimeSlots);
+            $booking = Booking::where('club_id', $clubId)
+                ->whereDate('booking_date', $currentDate)->first();
+            $user_profile = $booking ?  $booking->user->profile : null;
+
+            $response[] = [
+                'id' => $timeSlot->id,
+                'slot_time' => $timeSlot->slot_time,
+                'is_slot_available' => $isSlotAvailable,
+                'user_profile' => $user_profile,
+            ];
+        }
+
+        // Return the available time slots in JSON format
+        return response()->json(['data' => $response], 200);
     }
+
 
     public function bookClub(Request $request)
     {
@@ -141,21 +171,25 @@ class ClubBookingController extends Controller
         $user = Auth::user();
         $clubId = $request->input('club_id');
         $timeSlotId = $request->input('time_slot_id');
+        $currentDate = Carbon::today()->toDateString();
 
         // Check if the time slot is available
         $isSlotAvailable = Booking::where('club_id', $clubId)
             ->where('time_slot_id', $timeSlotId)
+            ->whereDate('booking_date', $currentDate) // Add the booking_date check
             ->doesntExist();
 
         if (!$isSlotAvailable) {
             return response()->json(['error' => 'The selected time slot is not available.'], 400);
         }
 
+
         // Book the club
         $booking = Booking::create([
             'user_id' => $user->id,
             'club_id' => $clubId,
             'time_slot_id' => $timeSlotId,
+            'booking_date' => $currentDate,
         ]);
 
         return response()->json(['data' => $booking], 200);

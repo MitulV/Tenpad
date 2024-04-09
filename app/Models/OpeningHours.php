@@ -16,6 +16,8 @@ class OpeningHours extends Model
         'close_time',
     ];
 
+    protected $hidden = ['created_at', 'updated_at'];
+
     public function club()
     {
         return $this->belongsTo(Club::class);

@@ -9,5 +9,13 @@ class TimeSlot extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['slot_time'];
+    protected $fillable = ['slot_time', 'slot_group'];
+
+    protected $hidden = ['created_at', 'updated_at'];
+
+
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class, 'time_slot_id');
+    }
 }
