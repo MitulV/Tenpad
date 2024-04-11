@@ -30,7 +30,6 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'User created Successfully',
             'user' => $user,
-            'profile' => null,
             'token' => $token
         ], Response::HTTP_CREATED);
     }
@@ -43,9 +42,7 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-
-
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->with('profile')->first();
 
         if (!$user ||  !Hash::check($request->password, $user->password)) {
             return response()->json(['error' => 'UnAuthenticated'], 401);
@@ -57,14 +54,16 @@ class AuthController extends Controller
 
         return response()->json([
             'user' => $user,
-            'profile' => $user->profile,
             'token' => $token
         ]);
     }
 
     public function logout(Request $request)
     {
-        auth()->user()->tokens()->delete();
+        /** @var User|null $user */
+        $user = auth()->user();
+        
+        $user->tokens()->delete();
 
         return response()->noContent(Response::HTTP_NO_CONTENT);
     }
@@ -118,6 +117,7 @@ class AuthController extends Controller
             'password' => ['required']
         ]);
 
+        /** @var User|null $user */
         $user = auth()->user();
 
         $user->update($request->only('password'));

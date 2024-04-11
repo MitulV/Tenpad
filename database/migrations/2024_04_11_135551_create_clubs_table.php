@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateClubsTable extends Migration
+return new class extends Migration
 {
     /**
      * Run the migrations.
@@ -15,13 +15,15 @@ class CreateClubsTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('address');
-            $table->string('image')->nullable(); // Assuming image is optional
             $table->string('contact_number');
-            $table->string('website')->nullable(); // Assuming website is optional
-            $table->double('latitude', 10, 6); // Adjust precision and scale as needed
-            $table->double('longitude', 10, 6); // Adjust precision and scale as needed
+            $table->string('website')->nullable();
+            $table->double('latitude', 10, 6);
+            $table->double('longitude', 10, 6);
             $table->json('facilities')->nullable();
-            $table->decimal('price_per_hour', 10, 2); // Adjust precision and scale as needed
+            $table->decimal('price_per_hour', 10, 2);
+            $table->integer('slot_duration')->default(60);
+            $table->boolean('is_padel_available')->default(false);
+            $table->boolean('is_pickle_ball_available')->default(false);
             $table->timestamps();
         });
     }
@@ -33,4 +35,4 @@ class CreateClubsTable extends Migration
     {
         Schema::dropIfExists('clubs');
     }
-}
+};

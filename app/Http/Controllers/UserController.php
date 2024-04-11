@@ -38,6 +38,7 @@ class UserController extends Controller
         $experienceLevel = $request['experience_level'];
         $matchesPlayed = $request['matches_played_last_3_months'];
         $profileScore = 0.00;
+        $status='Approved';
 
         // Define the score ranges
         $scoreRanges = [
@@ -64,6 +65,8 @@ class UserController extends Controller
                     // No need to adjust the score for other cases
                     break;
             }
+        }else{
+            $status='Pending';
         }
 
         $user = auth()->user();
@@ -103,7 +106,8 @@ class UserController extends Controller
             'tenpad_advance_padel_federation_name' => $request->input('tenpad_advance_padel_federation_name'),
             'tenpad_advance_membership_number' => $request->input('tenpad_advance_membership_number'),
             'tenpad_advance_current_rank' => $request->input('tenpad_advance_current_rank'),
-            'profile_score' => $profileScore
+            'profile_score' => $profileScore,
+            'status'=> $status
         ]);
 
         return response()->json([

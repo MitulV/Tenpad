@@ -10,7 +10,7 @@ class Booking extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'club_id', 'time_slot_id', 'booking_date'];
+    protected $fillable = ['user_id', 'club_id','court_id','start_time', 'end_time', 'booking_date'];
     protected $hidden = ['created_at', 'updated_at'];
     
     public function user(): BelongsTo
@@ -23,8 +23,8 @@ class Booking extends Model
         return $this->belongsTo(Club::class);
     }
 
-    public function timeSlot(): BelongsTo
+    public function court(): BelongsTo
     {
-        return $this->belongsTo(TimeSlot::class);
+        return $this->belongsTo(Court::class);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -13,13 +12,15 @@ class Club extends Model
     protected $fillable = [
         'name',
         'address',
-        'image',
         'contact_number',
         'website',
         'latitude',
         'longitude',
         'facilities',
         'price_per_hour',
+        'slot_duration',
+        'is_padel_available',
+        'is_pickle_ball_available'
     ];
 
     protected $hidden = ['created_at', 'updated_at'];
@@ -32,6 +33,16 @@ class Club extends Model
     public function openingHours()
     {
         return $this->hasMany(OpeningHours::class);
+    }
+
+    public function images()
+    {
+        return $this->hasMany(ClubImage::class);
+    }
+
+    public function courts()
+    {
+        return $this->hasMany(Court::class);
     }
 
 }

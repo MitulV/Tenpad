@@ -31,6 +31,7 @@ class CreateUserProfilesTable extends Migration
             $table->string('tenpad_advance_membership_number')->nullable();
             $table->string('tenpad_advance_current_rank')->nullable();
             $table->decimal('profile_score', 4, 2)->default(0.00)->nullable();
+            $table->enum('status', ['Approved', 'Pending', 'Blocked', 'Inactive'])->default('Approved');
             $table->timestamps();
         });
     }

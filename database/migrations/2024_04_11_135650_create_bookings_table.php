@@ -15,11 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained();
             $table->foreignId('club_id')->constrained();
-            $table->foreignId('time_slot_id')->constrained('time_slots');
-            $table->date('booking_date'); // Add the booking date column
+            $table->foreignId('court_id')->constrained();
+            $table->time('start_time');
+            $table->time('end_time');
+            $table->date('booking_date');
             $table->timestamps();
         });
-        
     }
 
     /**

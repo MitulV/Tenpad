@@ -1,7 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ClubBookingController;
+use App\Http\Controllers\BookingController;
+use App\Http\Controllers\ClubController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,11 +17,13 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::post('change-password', [AuthController::class, 'changePassword']);
 
-    Route::post('/clubs/create', [ClubBookingController::class, 'create']);
-    Route::get('/clubs/search', [ClubBookingController::class, 'searchClubs']);
-    Route::get('/clubs/search-by-location', [ClubBookingController::class, 'searchClubsByLocation']);
-    Route::get('/clubs/{id}/details', [ClubBookingController::class, 'getClubDetails']);
-    Route::get('/recent-searches', [ClubBookingController::class, 'getRecentSearches']);
-    Route::get('/clubs/{clubId}/time-slots', [ClubBookingController::class, 'getTimeSlots']);
-    Route::post('/book-club', [ClubBookingController::class, 'bookClub']);
+    Route::post('club/signup', [ClubController::class, 'signup']);
+    Route::post('club/signin', [ClubController::class, 'signin']);
+    Route::post('/clubs/create', [ClubController::class, 'create']);
+    Route::get('/clubs/search', [ClubController::class, 'searchClubs']);
+    Route::get('/clubs/search-by-location', [ClubController::class, 'searchClubsByLocation']);
+    Route::get('/clubs/{id}/details', [ClubController::class, 'getClubDetails']);
+    Route::get('/recent-searches', [BookingController::class, 'getRecentSearches']);
+    Route::get('/clubs/{clubId}/time-slots/{date}', [BookingController::class, 'getTimeSlots']);
+    Route::post('/book-club', [BookingController::class, 'bookClub']);
 });
