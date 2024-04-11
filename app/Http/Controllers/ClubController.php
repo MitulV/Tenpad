@@ -11,6 +11,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 class ClubController extends Controller
@@ -74,57 +75,67 @@ class ClubController extends Controller
             'facilities' => 'nullable|array',
             'price_per_hour' => 'required|numeric',
             'opening_hours' => 'required|array',
-            // 'club_images' => ['required', 'image'],
+            'club_images' => ['required', 'array'],
+            'club_images.*' => ['image'],
             'slot_duration' => 'required|integer|min:1',
             'is_padel_available' => ['required'],
             'is_pickle_ball_available' => ['required'],
-            'courts' => 'required|array', 
+            'courts' => 'required|array',
             'courts.*.name' => 'required|string',
             'courts.*.description' => 'nullable|string',
             'courts.*.sport' => 'required|in:Padel,"Pickle Ball"',
-            'courts.*.court_type' => 'required|in:indoor,outdoor,"roofed outdoor"', 
+            'courts.*.court_type' => 'required|in:indoor,outdoor,"roofed outdoor"',
             'courts.*.features' => 'nullable|string',
             'courts.*.status' => 'required|in:active,inactive',
         ]);
 
-        $club = Club::create($request->except(['opening_hours', 'club_images']));
+        try {
+            DB::beginTransaction();
 
-        // foreach ($request->file('club_images') as $image) {
-        //     $uniqueFilename = 'club_image_' . $club->id . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
-        //     $imagePath = $image->storeAs('club_images', $uniqueFilename, 'public');
-        //     $imageUrl = asset('storage/' . $imagePath);
+            $club = Club::create($request->except(['opening_hours', 'club_images']));
 
-        //     ClubImage::create([
-        //         'club_id' => $club->id,
-        //         'image' => $imageUrl,
-        //     ]);
-        // }
+            foreach ($request->file('club_images') as $image) {
+                $uniqueFilename = 'club_image_' . $club->id . '_' . uniqid() . '.' . $image->getClientOriginalExtension();
+                $imagePath = $image->storeAs('club_images', $uniqueFilename, 'public');
+                $imageUrl = asset('storage/' . $imagePath);
 
-        foreach ($request->input('opening_hours') as $openingHour) {
-            $openTime = Carbon::createFromFormat('h:i A', $openingHour['timeSlots'][0]['openTime'])->format('H:i:s');
-            $closeTime = Carbon::createFromFormat('h:i A', $openingHour['timeSlots'][0]['closeTime'])->format('H:i:s');
+                ClubImage::create([
+                    'club_id' => $club->id,
+                    'image' => $imageUrl,
+                ]);
+            }
 
-            $club->openingHours()->create([
-                'day' => $openingHour['day'],
-                'open_time' => $openTime,
-                'close_time' => $closeTime,
-            ]);
+            foreach ($request->input('opening_hours') as $openingHour) {
+                $openTime = Carbon::createFromFormat('h:i A', $openingHour['timeSlots'][0]['openTime'])->format('H:i:s');
+                $closeTime = Carbon::createFromFormat('h:i A', $openingHour['timeSlots'][0]['closeTime'])->format('H:i:s');
+
+                $club->openingHours()->create([
+                    'day' => $openingHour['day'],
+                    'open_time' => $openTime,
+                    'close_time' => $closeTime,
+                ]);
+            }
+
+
+            foreach ($request->courts as $courtData) {
+                Court::create([
+                    'club_id' => $club->id,
+                    'name' => $courtData['name'],
+                    'description' => $courtData['description'] ?? null,
+                    'sport' => $courtData['sport'],
+                    'court_type' => $courtData['court_type'],
+                    'features' => $courtData['features'] ?? null,
+                    'status' => $courtData['status'],
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json(['message' => 'Club created successfully', 'club' => $club->load('openingHours', 'courts')], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['error' => 'Failed to create club.','error_obj'=>$e], 500);
         }
-
-
-        foreach ($request->courts as $courtData) {
-            Court::create([
-                'club_id' => $club->id,
-                'name' => $courtData['name'],
-                'description' => $courtData['description'] ?? null,
-                'sport' => $courtData['sport'],
-                'court_type' => $courtData['court_type'],
-                'features' => $courtData['features'] ?? null,
-                'status' => $courtData['status'],
-            ]);
-        }
-
-        return response()->json(['message' => 'Club created successfully', 'club' => $club->load('openingHours','courts')], 201);
     }
 
 
