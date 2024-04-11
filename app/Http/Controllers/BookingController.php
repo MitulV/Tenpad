@@ -49,7 +49,7 @@ class BookingController extends Controller
         $courts = Court::where('club_id', $clubId)->get();
 
         // Initialize an array to store time slots for each court
-        $timeSlots = [];
+        $timeSlots = ['Morning' => [], 'Afternoon' => [], 'Evening' => []];
 
         // Loop through each court
         foreach ($courts as $court) {
@@ -61,6 +61,9 @@ class BookingController extends Controller
                 // Calculate end time for the current time slot
                 $endTimeSlot = clone $startTime;
                 $endTimeSlot->addMinutes($club->slot_duration);
+
+                // Determine the time slot period (Morning, Afternoon, or Evening)
+            $timeSlotPeriod = $this->getTimeSlotPeriod($startTime);
 
                 $isSlotAvailable = !Booking::where('club_id', $clubId)
                     ->where('court_id', $court->id)
@@ -96,15 +99,16 @@ class BookingController extends Controller
                 }
 
                 // Add the time slot details to the array
-                $timeSlots[$court->id][] = [
-                    'start_time' => $startTime->format('H:i'),
-                    'end_time' => $endTimeSlot->format('H:i'),
-                    'is_available' => $isSlotAvailable,
-                    'booking' => $isSlotAvailable ? null : [
-                        'user' => $user,
-                        'booking_info' => $booking,
-                    ],
-                ];
+            $timeSlots[$timeSlotPeriod][] = [
+                'court_id' => $court->id,
+                'start_time' => $startTime->format('H:i'),
+                'end_time' => $endTimeSlot->format('H:i'),
+                'is_available' => $isSlotAvailable,
+                'booking' => $isSlotAvailable ? null : [
+                    'user' => $user,
+                    'booking_info' => $booking,
+                ],
+            ];
 
                 // Move to the next time slot
                 $startTime = $endTimeSlot;
@@ -114,6 +118,18 @@ class BookingController extends Controller
         // Return the time slots for all courts
         return response()->json(['data' => $timeSlots], 200);
     }
+
+    private function getTimeSlotPeriod($time)
+{
+    $hour = $time->hour;
+    if ($hour >= 6 && $hour < 12) {
+        return 'Morning';
+    } elseif ($hour >= 12 && $hour < 18) {
+        return 'Afternoon';
+    } else {
+        return 'Evening';
+    }
+}
 
     public function bookClub(Request $request)
     {
