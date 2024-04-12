@@ -134,7 +134,7 @@ class ClubController extends Controller
             return response()->json(['message' => 'Club created successfully', 'club' => $club->load('openingHours', 'courts')], 201);
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => 'Failed to create club.','error_obj'=>$e], 500);
+            return response()->json(['error' => 'Failed to create club.', 'error_obj' => $e], 500);
         }
     }
 
@@ -147,10 +147,13 @@ class ClubController extends Controller
 
         $query = trim($request->input('query'));
 
+
         $clubs = Club::where('name', 'like', '%' . $request->input('query') . '%')
             ->orWhere('address', 'like', '%' . $request->input('query') . '%')
-            ->select('id', 'name', 'image', 'price_per_hour')
+            ->select('clubs.id', 'clubs.name', 'clubs.price_per_hour', 'club_images.image')
+            ->leftJoin('club_images', 'clubs.id', '=', 'club_images.club_id')
             ->get();
+
 
         // Store recent search for the authenticated user
         if (Auth::check()) {
@@ -173,20 +176,23 @@ class ClubController extends Controller
         $rangeInKm = 5;
 
         $clubs = Club::selectRaw("
-        *,
-        (6371 * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))))
+        clubs.*,
+        club_images.image,
+        (6371 * acos(cos(radians(?)) * cos(radians(clubs.latitude)) * cos(radians(clubs.longitude) - radians(?)) + sin(radians(?)) * sin(radians(clubs.latitude))))
         AS distance
     ", [$request->input('latitude'), $request->input('longitude'), $request->input('latitude')])
+            ->leftJoin('club_images', 'clubs.id', '=', 'club_images.club_id')
             ->having('distance', '<=', $rangeInKm)
             ->orderBy('distance')
             ->get();
+
 
         return response()->json(['data' => $clubs], 200);
     }
 
     public function getClubDetails(Request $request, $id)
     {
-        $club = Club::with('openingHours')->find($id);
+        $club = Club::with(['openingHours', 'clubImages'])->find($id);
 
         if (!$club) {
             return response()->json(['message' => 'Club not found'], 404);

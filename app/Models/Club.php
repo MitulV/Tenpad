@@ -35,7 +35,7 @@ class Club extends Model
         return $this->hasMany(OpeningHours::class);
     }
 
-    public function images()
+    public function clubImages()
     {
         return $this->hasMany(ClubImage::class);
     }
