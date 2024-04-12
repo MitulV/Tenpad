@@ -22,7 +22,11 @@ class AuthController extends Controller
             'password_confirmation' => ['required', 'string'],
         ]);
 
-        $user = User::create($request->only('email', 'password'));
+        $user = User::create([
+            'email' => $request->input('email'),
+            'password' => bcrypt($request->input('password')),
+            'user_type' => 'User',
+        ]);
 
         $SECRET = env("SENCTUM_SECRET", "APP_SECRET");
         $token = $user->createToken($SECRET)->plainTextToken;
