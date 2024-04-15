@@ -147,7 +147,6 @@ class ClubController extends Controller
 
         $query = trim($request->input('query'));
 
-
         $clubs = Club::where('name', 'like', '%' . $request->input('query') . '%')
             ->orWhere('address', 'like', '%' . $request->input('query') . '%')
             ->select('clubs.id', 'clubs.name', 'clubs.price_per_hour', 'club_images.image')
@@ -156,11 +155,9 @@ class ClubController extends Controller
 
 
         // Store recent search for the authenticated user
-        if (Auth::check()) {
             /** @var User|null $user */
             $user = Auth::user();
             $user->recentSearches()->create(['query' => $query]);
-        }
 
         return response()->json(['data' => $clubs], 200);
     }
@@ -192,7 +189,7 @@ class ClubController extends Controller
 
     public function getClubDetails(Request $request, $id)
     {
-        $club = Club::with(['openingHours', 'clubImages'])->find($id);
+        $club = Club::with(['openingHours', 'clubImages','courts'])->find($id);
 
         if (!$club) {
             return response()->json(['message' => 'Club not found'], 404);
