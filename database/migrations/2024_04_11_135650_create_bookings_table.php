@@ -19,6 +19,9 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
             $table->date('booking_date');
+            $table->enum('match_type', ['Competitive', 'Friendly'])->nullable();
+            $table->enum('play_with_gender', ['All players', 'Men only', 'Female only'])->nullable();
+            $table->enum('match_visibility', ['Public', 'Private'])->nullable();
             $table->timestamps();
         });
     }

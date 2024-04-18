@@ -10,7 +10,18 @@ class Booking extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'club_id','court_id','start_time', 'end_time', 'booking_date'];
+    protected $fillable = [
+        'user_id',
+        'club_id',
+        'court_id',
+        'start_time',
+        'end_time',
+        'booking_date',
+        'match_type',
+        'play_with_gender',
+        'match_visibility',
+    ];
+
     protected $hidden = ['created_at', 'updated_at'];
     
     public function user(): BelongsTo

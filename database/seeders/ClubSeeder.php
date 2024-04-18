@@ -45,8 +45,8 @@ class ClubSeeder extends Seeder
                 // Create opening hours
                 $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
                 foreach ($days as $day) {
-                    $openTime = $faker->time('H:i:s');
-                    $closeTime = $faker->time('H:i:s');
+                    $openTime = $faker->dateTimeBetween('06:00:00', '10:00:00')->format('H:i:00');
+                    $closeTime = $faker->dateTimeBetween('16:00:00', '19:00:00')->format('H:i:00');
                     OpeningHours::create([
                         'club_id' => $club->id,
                         'day' => $day,
