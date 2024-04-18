@@ -14,7 +14,7 @@ class UserController extends Controller
     {
         $request->validate([
             'full_name' => 'required|string',
-            'profile_pic' => ['required', 'image'],
+            'profile_pic' => ['image'],
             'country_code' => 'required|string',
             'number' => 'required|string',
             'dob' => 'required|date',
@@ -78,12 +78,14 @@ class UserController extends Controller
             return response()->json(['message' => 'Profile already exists for the user', 'user_profile' => $existingProfile]);
         }
 
-        // If no existing profile, create a new one
-        $uniqueFilename = 'profile_pic_' . $user->id . '_' . uniqid() . '.' . $request->file('profile_pic')->getClientOriginalExtension();
-
-        $imagePath = $request->file('profile_pic')->storeAs('profile_pics', $uniqueFilename, 'public');
-
-        $imageUrl = asset('storage/' . $imagePath);
+       
+        if ($request->hasFile('profile_pic')) {
+            $uniqueFilename = 'profile_pic_' . $user->id . '_' . uniqid() . '.' . $request->file('profile_pic')->getClientOriginalExtension();
+            $imagePath = $request->file('profile_pic')->storeAs('profile_pics', $uniqueFilename, 'public');
+            $imageUrl = asset('storage/' . $imagePath);
+        } else {
+            $imageUrl = null;
+        }
 
         $userProfile = UserProfile::create([
             'user_id' => $user->id,
