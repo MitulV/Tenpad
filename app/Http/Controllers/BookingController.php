@@ -9,6 +9,7 @@ use App\Models\Court;
 use App\Models\OpeningHours;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class BookingController extends Controller
 {
@@ -77,10 +78,13 @@ class BookingController extends Controller
                 // Check if the slot is available
                 $isSlotAvailable = !$this->isSlotBooked($clubId, $court->id, $date, $startTime, $endTimeSlot);
 
+                Log::info('Slot availability: ' . ($isSlotAvailable ? 'Available' : 'Not Available'));
+
                 // Retrieve booking object and user if the slot is not available
                 $booking = null;
                 $user = null;
                 if (!$isSlotAvailable) {
+                    Log::info('Slot is not available. Retrieving booking object and user.');
                     $booking = Booking::where('club_id', $clubId)
                         ->where('court_id', $court->id)
                         ->where('booking_date', $date)
@@ -89,7 +93,9 @@ class BookingController extends Controller
                         ->first();
 
                     if ($booking) {
+                        Log::info('Booking object: ' . json_encode($booking));
                         $user = $booking->user()->with('profile')->first();
+                        Log::info('User: ' . json_encode($user));
                     }
                 }
 
