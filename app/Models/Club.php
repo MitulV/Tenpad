@@ -20,7 +20,7 @@ class Club extends Model
         'price_per_hour',
         'slot_duration',
         'is_padel_available',
-        'is_pickle_ball_available'
+        'is_pickle_ball_available',
     ];
 
     protected $hidden = ['created_at', 'updated_at'];

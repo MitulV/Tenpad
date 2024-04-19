@@ -20,6 +20,7 @@ class Booking extends Model
         'match_type',
         'play_with_gender',
         'match_visibility',
+        'marketing_communications'
     ];
 
     protected $hidden = ['created_at', 'updated_at'];

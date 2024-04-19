@@ -22,6 +22,7 @@ return new class extends Migration
             $table->enum('match_type', ['Competitive', 'Friendly'])->nullable();
             $table->enum('play_with_gender', ['All players', 'Men only', 'Female only'])->nullable();
             $table->enum('match_visibility', ['Public', 'Private'])->nullable();
+            $table->boolean('marketing_communications')->default(false);
             $table->timestamps();
         });
     }

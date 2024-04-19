@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Club;
 use Illuminate\Http\Request;
 use App\Models\ClubImage;
@@ -138,34 +139,84 @@ class ClubController extends Controller
         }
     }
 
-
     public function searchClubs(Request $request)
     {
         $request->validate([
             'query' => 'nullable|string',
+            'is_padel_available' => 'nullable|boolean',
+            'is_pickle_ball_available' => 'nullable|boolean',
+            'date' => 'nullable|date',
+            'time' => 'nullable|date_format:H:i',
         ]);
 
         $query = $request->input('query');
+        $isPadelAvailable = $request->input('is_padel_available');
+        $isPickleBallAvailable = $request->input('is_pickle_ball_available');
+        $date = $request->input('date');
+        $time = $request->input('time');
 
-        if (empty($query)) {
-            $clubsWithImages = Club::with('clubImages')->get();
-        } else {
-            // If query is provided, search clubs by name or address containing the query
-            $clubsWithImages = Club::where('name', 'like', "%$query%")
-                ->orWhere('address', 'like', "%$query%")
-                ->with('clubImages')
-                ->get();
+        $queryBuilder = Club::query();
+
+        // Filter clubs based on is_padel_available if given
+        if ($isPadelAvailable !== null) {
+            $queryBuilder->where('is_padel_available', $isPadelAvailable);
         }
 
-        // Store recent search for the authenticated user
+        // Filter clubs based on is_pickle_ball_available if given
+        if ($isPickleBallAvailable !== null) {
+            $queryBuilder->where('is_pickle_ball_available', $isPickleBallAvailable);
+        }
+
+        // If query is provided, search clubs by name or address containing the query
         if (!empty($query)) {
+            $queryBuilder->where(function ($queryBuilder) use ($query) {
+                $queryBuilder->where('name', 'like', "%$query%")
+                    ->orWhere('address', 'like', "%$query%");
+            });
+
             /** @var User|null $user */
             $user = Auth::user();
             $user->recentSearches()->create(['query' => $query]);
         }
 
-        return response()->json(['data' => $clubsWithImages], 200);
+        // Get all clubs with images
+        $clubsWithImages = $queryBuilder->with('clubImages')->get();
+        $clubsWithAvailableCourts = [];
+        
+        // Iterate over each club
+        foreach ($clubsWithImages as $club) {
+
+            $clubId = $club->id;
+
+            $courts = Court::where('club_id', $clubId)->get();
+
+            $isAvailable = false;
+
+            foreach ($courts as $court) {
+                $courtId = $court->id;
+
+                $isSlotAvailable = !Booking::where('club_id', $clubId)
+                    ->where('court_id', $courtId)
+                    ->where('booking_date', $date)
+                    ->where('start_time', '<=', $time) // Check if the booking starts before or at the specified time
+                    ->where('end_time', '>', $time)    // Check if the booking ends after the specified time
+                    ->exists();
+
+                if ($isSlotAvailable) {
+                    $isAvailable = true;
+                    break;
+                }
+            }
+
+            if ($isAvailable) {
+                $clubsWithAvailableCourts[] = $club;
+            }
+        }
+
+        return response()->json(['data' => $clubsWithAvailableCourts], 200);
     }
+
+
 
     public function searchClubsByLocation(Request $request)
     {
@@ -206,7 +257,7 @@ class ClubController extends Controller
     public function calculateDistanceBetweenUserAndClub(Request $request, $clubId)
     {
         $userLatitude = $request->query('latitude');
-        $userLongitude =$request->query('longitude');
+        $userLongitude = $request->query('longitude');
 
         // Fetch the club's latitude and longitude based on the club ID
         $club = Club::findOrFail($clubId);

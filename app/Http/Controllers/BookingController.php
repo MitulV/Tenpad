@@ -173,6 +173,7 @@ class BookingController extends Controller
             'match_type' => 'required|in:Competitive,Friendly',
             'play_with_gender' => 'required|in:"All players","Men only","Female only"',
             'match_visibility' => 'required|in:Public,Private',
+            'marketing_communications' => 'nullable|boolean'
         ]);
 
         $user = Auth::user();
