@@ -22,6 +22,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/clubs/create', [ClubController::class, 'create']);
     Route::get('/clubs/search', [ClubController::class, 'searchClubs']);
     Route::get('/clubs/search-by-location', [ClubController::class, 'searchClubsByLocation']);
+    Route::get('/clubs/{clubId}/distance', [ClubController::class, 'calculateDistanceBetweenUserAndClub']);
     Route::get('/clubs/{id}/details', [ClubController::class, 'getClubDetails']);
     Route::get('/recent-searches', [BookingController::class, 'getRecentSearches']);
     Route::get('/clubs/{clubId}/time-slots/{date}', [BookingController::class, 'getTimeSlots']);

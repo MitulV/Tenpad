@@ -147,24 +147,24 @@ class ClubController extends Controller
 
         $query = $request->input('query');
 
-        $clubsQuery = Club::select('clubs.id', 'clubs.name', 'clubs.price_per_hour', 'club_images.image')
-            ->leftJoin('club_images', 'clubs.id', '=', 'club_images.club_id');
-
-        if (!empty($query)) {
-            $clubsQuery->where('name', 'like', '%' . $query . '%')
-                ->orWhere('address', 'like', '%' . $query . '%');
+        if (empty($query)) {
+            $clubsWithImages = Club::with('clubImages')->get();
+        } else {
+            // If query is provided, search clubs by name or address containing the query
+            $clubsWithImages = Club::where('name', 'like', "%$query%")
+                ->orWhere('address', 'like', "%$query%")
+                ->with('clubImages')
+                ->get();
         }
 
-        $clubs = $clubsQuery->get();
-
         // Store recent search for the authenticated user
-        if ($query !== null) {
+        if (!empty($query)) {
             /** @var User|null $user */
             $user = Auth::user();
             $user->recentSearches()->create(['query' => $query]);
         }
 
-        return response()->json(['data' => $clubs], 200);
+        return response()->json(['data' => $clubsWithImages], 200);
     }
 
     public function searchClubsByLocation(Request $request)
@@ -201,5 +201,36 @@ class ClubController extends Controller
         }
 
         return response()->json(['data' => $club], 200);
+    }
+
+    public function calculateDistanceBetweenUserAndClub(Request $request, $clubId)
+    {
+        $userLatitude = $request->query('latitude');
+        $userLongitude =$request->query('longitude');
+
+        // Fetch the club's latitude and longitude based on the club ID
+        $club = Club::findOrFail($clubId);
+
+        $clubLatitude = $club->latitude;
+        $clubLongitude = $club->longitude;
+
+        // Earth radius in kilometers
+        $earthRadius = 6371;
+
+        // Convert latitude and longitude from degrees to radians
+        $userLatRad = deg2rad($userLatitude);
+        $clubLatRad = deg2rad($clubLatitude);
+        $latDiffRad = deg2rad($clubLatitude - $userLatitude);
+        $lonDiffRad = deg2rad($clubLongitude - $userLongitude);
+
+
+        // Haversine formula
+        $a = sin($latDiffRad / 2) * sin($latDiffRad / 2) +
+            cos($userLatRad) * cos($clubLatRad) *
+            sin($lonDiffRad / 2) * sin($lonDiffRad / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+        $distance = $earthRadius * $c;
+        // Return the calculated distance
+        return $distance;
     }
 }
