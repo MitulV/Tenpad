@@ -97,12 +97,11 @@ class BookingController extends Controller
                         ->whereRaw('TIME(end_time) = ?', [$endTimeSlot->format('H:i:s')])
                         ->first();
 
-                    Log::info('Generated SQL Query: ' . Booking::where('club_id', $clubId)
+                        Log::info('Generated SQL Query: ' . Booking::where('club_id', $clubId)
                         ->where('court_id', $court->id)
                         ->where('booking_date', $date)
                         ->whereRaw('TIME(start_time) = ?', [$startTime->format('H:i:s')])
                         ->whereRaw('TIME(end_time) = ?', [$endTimeSlot->format('H:i:s')])
-                        ->first()
                         ->toSql());
 
                     if ($booking) {
