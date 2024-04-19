@@ -142,22 +142,27 @@ class ClubController extends Controller
     public function searchClubs(Request $request)
     {
         $request->validate([
-            'query' => 'required|string',
+            'query' => 'nullable|string',
         ]);
 
-        $query = trim($request->input('query'));
+        $query = $request->input('query');
 
-        $clubs = Club::where('name', 'like', '%' . $request->input('query') . '%')
-            ->orWhere('address', 'like', '%' . $request->input('query') . '%')
-            ->select('clubs.id', 'clubs.name', 'clubs.price_per_hour', 'club_images.image')
-            ->leftJoin('club_images', 'clubs.id', '=', 'club_images.club_id')
-            ->get();
+        $clubsQuery = Club::select('clubs.id', 'clubs.name', 'clubs.price_per_hour', 'club_images.image')
+            ->leftJoin('club_images', 'clubs.id', '=', 'club_images.club_id');
 
+        if (!empty($query)) {
+            $clubsQuery->where('name', 'like', '%' . $query . '%')
+                ->orWhere('address', 'like', '%' . $query . '%');
+        }
+
+        $clubs = $clubsQuery->get();
 
         // Store recent search for the authenticated user
+        if ($query !== null) {
             /** @var User|null $user */
             $user = Auth::user();
             $user->recentSearches()->create(['query' => $query]);
+        }
 
         return response()->json(['data' => $clubs], 200);
     }
@@ -189,7 +194,7 @@ class ClubController extends Controller
 
     public function getClubDetails(Request $request, $id)
     {
-        $club = Club::with(['openingHours', 'clubImages','courts'])->find($id);
+        $club = Club::with(['openingHours', 'clubImages', 'courts'])->find($id);
 
         if (!$club) {
             return response()->json(['message' => 'Club not found'], 404);

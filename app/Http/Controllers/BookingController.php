@@ -95,7 +95,7 @@ class BookingController extends Controller
 
                 // Add court details to the time slot courts array
                 $timeSlotCourts[] = [
-                    'court_id' => $court->id,
+                    'court' => $court->toArray(),
                     'is_available' => $isSlotAvailable,
                     'booking' => $isSlotAvailable ? null : [
                         'user' => $user,
