@@ -84,12 +84,7 @@ class BookingController extends Controller
                 $booking = null;
                 $user = null;
                 if (!$isSlotAvailable) {
-                    Log::info('Slot is not available. Retrieving booking object and user.');
-                    Log::info('club_id-' . $clubId);
-                    Log::info('court_id-' . $court->id);
-                    Log::info('booking_date' . $date);
-                    Log::info('start_time' . $startTime);
-                    Log::info('end_time' . $endTimeSlot);
+                   
                     $booking = Booking::where('club_id', $clubId)
                         ->where('court_id', $court->id)
                         ->where('booking_date', $date)
@@ -97,17 +92,10 @@ class BookingController extends Controller
                         ->whereRaw('TIME(end_time) = ?', [$endTimeSlot->format('H:i:s')])
                         ->first();
 
-                        Log::info('Generated SQL Query: ' . Booking::where('club_id', $clubId)
-                        ->where('court_id', $court->id)
-                        ->where('booking_date', $date)
-                        ->whereRaw('TIME(start_time) = ?', [$startTime->format('H:i:s')])
-                        ->whereRaw('TIME(end_time) = ?', [$endTimeSlot->format('H:i:s')])
-                        ->toSql());
+                       
 
                     if ($booking) {
-                        Log::info('Booking object: ' . json_encode($booking));
                         $user = $booking->user()->with('profile')->first();
-                        Log::info('User: ' . json_encode($user));
                     }
                 }
 
